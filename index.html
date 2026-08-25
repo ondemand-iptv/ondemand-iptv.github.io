@@ -4,26 +4,295 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>OnDemand IPTV</title>
+<meta name="description" content="A clean, fast player for your own IPTV subscription. Add your M3U or Xtream playlist and stream Live TV, Movies and Series — favourites, multiple playlists, real channel logos.">
+<link rel="icon" href="logo.png">
+<meta property="og:title" content="OnDemand IPTV — your playlist, your player">
+<meta property="og:description" content="Add your M3U or Xtream playlist and stream Live TV, Movies and Series in a fast, clean player.">
+<meta property="og:image" content="logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Hanken+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
 <style>
-  :root { color-scheme: light dark; }
-  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    max-width: 720px; margin: 0 auto; padding: 60px 22px; line-height: 1.6;
-    color: #1c1c1e; background: #fff; }
-  @media (prefers-color-scheme: dark) { body { color: #e6e6ea; background: #0f0f12; } a { color: #4ea1ff; } }
-  h1 { font-size: 32px; }
-  .tag { color: #8a8a8e; font-size: 18px; }
-  ul { line-height: 2; }
+  :root{
+    --bg:#0d0b0e; --bg2:#141019; --card:#191420; --card2:#211a2b;
+    --ink:#f6f3f7; --muted:#a49eac; --faint:#6f6976;
+    --accent:#e8471b; --accent2:#ff7a45; --line:#2a2431;
+    --glow: rgba(232,71,27,.55);
+    --sora:'Sora',system-ui,sans-serif;
+    --body:'Hanken Grotesk',system-ui,sans-serif;
+    --mono:'JetBrains Mono',ui-monospace,monospace;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);line-height:1.55;
+    -webkit-font-smoothing:antialiased;overflow-x:hidden}
+  a{color:inherit;text-decoration:none}
+  .wrap{max-width:1120px;margin:0 auto;padding:0 24px}
+  h1,h2,h3{font-family:var(--sora);font-weight:800;line-height:1.05;letter-spacing:-.02em;text-wrap:balance;margin:0}
+  .eyebrow{font-family:var(--body);font-weight:700;font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent2)}
+
+  /* nav */
+  nav{position:sticky;top:0;z-index:20;background:rgba(13,11,14,.72);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+  nav .wrap{display:flex;align-items:center;gap:14px;height:66px}
+  .brand{display:flex;align-items:center;gap:10px;font-family:var(--sora);font-weight:800;font-size:18px}
+  .brand img{width:30px;height:30px}
+  .navlinks{margin-left:auto;display:flex;gap:28px;align-items:center}
+  .navlinks a{color:var(--muted);font-weight:600;font-size:14.5px}
+  .navlinks a:hover{color:var(--ink)}
+  .navcta{background:var(--accent);color:#fff;padding:9px 16px;border-radius:999px;font-weight:700;font-size:14px}
+  .navcta:hover{background:var(--accent2)}
+  @media(max-width:720px){.navlinks a:not(.navcta){display:none}}
+
+  /* hero */
+  .hero{position:relative;padding:78px 0 40px;overflow:hidden}
+  .hero::before{content:"";position:absolute;top:-260px;left:-160px;width:680px;height:680px;
+    background:radial-gradient(circle,var(--glow),transparent 62%);filter:blur(30px);z-index:0;pointer-events:none}
+  .hero .wrap{position:relative;z-index:1;display:grid;grid-template-columns:1.05fr .95fr;gap:40px;align-items:center}
+  .hero h1{font-size:clamp(38px,6vw,66px)}
+  .hero h1 .grad{background:linear-gradient(100deg,var(--accent2),var(--accent));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .lede{color:var(--muted);font-size:clamp(16px,2.1vw,19px);margin:22px 0 0;max-width:37ch}
+  .badges{display:flex;flex-wrap:wrap;gap:14px;margin-top:32px}
+  .store{display:flex;align-items:center;gap:11px;background:#000;border:1px solid #2f2a37;border-radius:14px;
+    padding:11px 18px;transition:transform .15s ease,border-color .15s}
+  .store:hover{transform:translateY(-2px);border-color:#4a4454}
+  .store svg{width:26px;height:26px;flex:none}
+  .store .s1{font-size:10.5px;color:#c7c2ce;letter-spacing:.02em}
+  .store .s2{font-family:var(--sora);font-weight:700;font-size:17px;line-height:1.1}
+  .store.soon{opacity:.62;cursor:default}
+  .store.soon:hover{transform:none;border-color:#2f2a37}
+  .soonpill{font-size:9.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#0d0b0e;background:var(--accent2);padding:2px 7px;border-radius:999px;margin-left:6px}
+  .note{margin-top:22px;font-size:13.5px;color:var(--faint);display:flex;align-items:center;gap:8px}
+  .note .dot{width:6px;height:6px;border-radius:50%;background:var(--accent);flex:none}
+
+  /* hero art */
+  .art{position:relative;justify-self:center;height:560px;width:100%;max-width:440px}
+  .art img{position:absolute;border-radius:34px;box-shadow:0 40px 90px -30px rgba(0,0,0,.85),0 0 0 1px rgba(255,255,255,.04)}
+  .art .p-main{width:270px;left:50%;top:0;transform:translateX(-46%);z-index:2}
+  .art .p-back{width:230px;right:0;top:70px;transform:rotate(6deg);opacity:.9;z-index:1}
+  .art .halo{position:absolute;inset:auto;left:50%;top:44%;width:360px;height:360px;transform:translate(-50%,-50%);
+    background:radial-gradient(circle,var(--glow),transparent 60%);filter:blur(26px);z-index:0}
+  @media(max-width:840px){
+    .hero .wrap{grid-template-columns:1fr;gap:8px}
+    .art{height:520px;margin-top:14px}
+  }
+
+  /* disclaimer strip */
+  .strip{border-top:1px solid var(--line);border-bottom:1px solid var(--line);background:var(--bg2)}
+  .strip .wrap{display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding:16px 24px;justify-content:center;text-align:center}
+  .strip b{color:var(--ink)} .strip span{color:var(--muted);font-size:14px}
+
+  /* sections */
+  section{padding:88px 0}
+  .shead{text-align:center;max-width:640px;margin:0 auto 52px}
+  .shead h2{font-size:clamp(28px,4vw,42px);margin-top:12px}
+  .shead p{color:var(--muted);margin:16px 0 0;font-size:16.5px}
+
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+  @media(max-width:860px){.grid{grid-template-columns:1fr 1fr}}
+  @media(max-width:560px){.grid{grid-template-columns:1fr}}
+  .feat{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:26px;transition:transform .18s ease,border-color .18s}
+  .feat:hover{transform:translateY(-4px);border-color:#3a3346}
+  .feat .ico{width:46px;height:46px;border-radius:12px;display:grid;place-items:center;
+    background:linear-gradient(150deg,rgba(232,71,27,.22),rgba(255,122,69,.12));margin-bottom:16px}
+  .feat .ico svg{width:24px;height:24px;stroke:var(--accent2);fill:none;stroke-width:1.9}
+  .feat h3{font-size:18px;font-family:var(--sora);font-weight:700}
+  .feat p{color:var(--muted);font-size:14.5px;margin:8px 0 0}
+
+  /* how it works */
+  .how{background:var(--bg2);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+  .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;counter-reset:s}
+  @media(max-width:800px){.steps{grid-template-columns:1fr}}
+  .step{position:relative;padding:28px;background:var(--card);border:1px solid var(--line);border-radius:18px}
+  .step .n{font-family:var(--sora);font-weight:800;font-size:15px;color:var(--accent2);
+    width:34px;height:34px;border-radius:10px;background:rgba(232,71,27,.14);display:grid;place-items:center;margin-bottom:16px}
+  .step h3{font-size:18px;font-family:var(--sora);font-weight:700}
+  .step p{color:var(--muted);font-size:14.5px;margin:8px 0 0}
+  .code{margin-top:14px;font-family:var(--mono);font-size:12.5px;color:var(--accent2);background:#0c0910;
+    border:1px solid var(--line);border-radius:9px;padding:9px 12px;overflow-x:auto;white-space:nowrap}
+
+  /* showcase */
+  .show{display:flex;gap:26px;justify-content:center;align-items:flex-end;flex-wrap:wrap}
+  .show figure{margin:0;text-align:center;max-width:250px}
+  .show img{width:100%;border-radius:26px;box-shadow:0 30px 70px -34px rgba(0,0,0,.8),0 0 0 1px rgba(255,255,255,.04)}
+  .show figcaption{color:var(--muted);font-size:14px;margin-top:14px;font-weight:600}
+
+  /* cta band */
+  .band{position:relative;text-align:center;overflow:hidden}
+  .band::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 50% 120%,var(--glow),transparent 60%);opacity:.7}
+  .band .wrap{position:relative}
+  .band h2{font-size:clamp(28px,4.5vw,46px)}
+  .band p{color:var(--muted);margin:16px auto 30px;max-width:44ch;font-size:16.5px}
+  .band .badges{justify-content:center}
+
+  /* footer */
+  footer{border-top:1px solid var(--line);background:var(--bg2);padding:56px 0 40px;font-size:14px}
+  .fgrid{display:flex;justify-content:space-between;gap:30px;flex-wrap:wrap}
+  .fbrand{display:flex;align-items:center;gap:10px;font-family:var(--sora);font-weight:800;font-size:17px}
+  .fbrand img{width:26px;height:26px}
+  .flinks{display:flex;gap:26px;flex-wrap:wrap}
+  .flinks a{color:var(--muted)} .flinks a:hover{color:var(--ink)}
+  .disc{color:var(--faint);font-size:12.5px;line-height:1.7;margin-top:26px;max-width:760px}
+  .copy{color:var(--faint);font-size:12.5px;margin-top:20px}
+
+  :focus-visible{outline:2px solid var(--accent2);outline-offset:3px;border-radius:6px}
+  .rise{opacity:0;transform:translateY(16px);animation:rise .7s cubic-bezier(.2,.7,.2,1) forwards}
+  .d1{animation-delay:.05s}.d2{animation-delay:.15s}.d3{animation-delay:.25s}
+  @keyframes rise{to{opacity:1;transform:none}}
+  @media(prefers-reduced-motion:reduce){.rise{animation:none;opacity:1;transform:none}html{scroll-behavior:auto}}
 </style>
 </head>
 <body>
-  <h1>OnDemand IPTV</h1>
-  <p class="tag">A clean, fast IPTV player for your own subscription.</p>
-  <p>OnDemand IPTV plays the Live TV, Movies, and Series from an <strong>M3U playlist</strong> or
-  <strong>Xtream Codes</strong> login that you provide. It hosts no content of its own — you bring your
-  own subscription.</p>
-  <ul>
-    <li><a href="./privacy.html">Privacy Policy</a></li>
-    <li><a href="mailto:xandipbixta@gmail.com">Support / Contact</a></li>
-  </ul>
+
+<nav>
+  <div class="wrap">
+    <a class="brand" href="#top"><img src="logo.png" alt=""> OnDemand IPTV</a>
+    <div class="navlinks">
+      <a href="#features">Features</a>
+      <a href="#how">How it works</a>
+      <a class="navcta" href="#get">Get the app</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero" id="top">
+  <div class="wrap">
+    <div>
+      <div class="eyebrow rise">Live TV · Movies · Series</div>
+      <h1 class="rise d1">Your subscription,<br><span class="grad">beautifully organized.</span></h1>
+      <p class="lede rise d2">OnDemand IPTV is a clean, fast player for the IPTV you already have. Add your own M3U or Xtream playlist and everything falls into a beautiful, easy interface — with favourites, multiple playlists and real channel logos.</p>
+      <div class="badges rise d3">
+        <a class="store" href="https://apps.apple.com/app/id6792238106" aria-label="Download on the App Store">
+          <svg viewBox="0 0 24 24" fill="#fff"><path d="M16.37 12.7c-.02-2.3 1.88-3.4 1.96-3.46-1.07-1.56-2.73-1.78-3.32-1.8-1.41-.14-2.76.83-3.47.83-.72 0-1.82-.81-3-.79-1.54.02-2.97.9-3.76 2.28-1.6 2.78-.41 6.9 1.15 9.16.76 1.11 1.66 2.35 2.85 2.3 1.15-.05 1.58-.74 2.97-.74 1.38 0 1.77.74 2.98.72 1.23-.02 2.01-1.12 2.76-2.24.87-1.28 1.23-2.53 1.25-2.6-.03-.01-2.39-.92-2.4-3.65zM14.13 5.9c.63-.77 1.06-1.83.94-2.9-.91.04-2.02.61-2.67 1.37-.58.67-1.09 1.75-.95 2.78 1.02.08 2.05-.52 2.68-1.25z"/></svg>
+          <span><span class="s1">Download on the</span><br><span class="s2">App Store</span></span>
+        </a>
+        <span class="store soon" aria-label="Coming soon to Google Play">
+          <svg viewBox="0 0 24 24"><path fill="#ff7a45" d="M3.6 2.3 13 12 3.6 21.7c-.35-.2-.6-.6-.6-1.05V3.35c0-.45.25-.85.6-1.05z"/><path fill="#ffb37a" d="M16.5 8.6 13 12l3.5 3.4 3.9-2.24c.8-.46.8-1.86 0-2.32z"/><path fill="#e8471b" d="M3.6 2.3c.16-.09.36-.13.56-.11.2.02.4.09.56.2L16 8.6 13 12z"/><path fill="#c73c17" d="M13 12l3 3.4-11.28 6.4c-.16.11-.36.18-.56.2-.2.02-.4-.02-.56-.11z"/></svg>
+          <span><span class="s1">Coming soon on</span><br><span class="s2">Google Play <span class="soonpill">Soon</span></span></span>
+        </span>
+      </div>
+      <div class="note rise d3"><span class="dot"></span> A player only — you bring your own subscription. No content included.</div>
+    </div>
+
+    <div class="art rise d2">
+      <div class="halo"></div>
+      <img class="p-back" src="shot-watch.png" alt="Watching a channel in OnDemand IPTV">
+      <img class="p-main" src="shot-live.png" alt="Live TV channel grid in OnDemand IPTV">
+    </div>
+  </div>
+</header>
+
+<div class="strip">
+  <div class="wrap"><span><b>Supports M3U / M3U8 playlists and Xtream Codes logins.</b> &nbsp;Your playlist stays private, on your device — no accounts, no servers.</span></div>
+</div>
+
+<section id="features">
+  <div class="shead">
+    <div class="eyebrow">Everything in one place</div>
+    <h2>A better home for your IPTV</h2>
+    <p>Fast, modern and distraction-free — built to make the subscription you already pay for finally feel great to use.</p>
+  </div>
+  <div class="grid">
+    <div class="feat">
+      <div class="ico"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="13" rx="2"/><path d="M8 21h8M12 18v3"/></svg></div>
+      <h3>Live TV</h3><p>A modern card grid with categories, search and real channel logos. Find anything in seconds.</p>
+    </div>
+    <div class="feat">
+      <div class="ico"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M8 4v5M16 4v5"/></svg></div>
+      <h3>Movies &amp; Series</h3><p>Full VOD with posters, seasons and episodes — jump straight into what you want to watch.</p>
+    </div>
+    <div class="feat">
+      <div class="ico"><svg viewBox="0 0 24 24"><path d="M12 4l2.3 4.7 5.2.8-3.8 3.6.9 5.1L12 15.9 7.4 18.2l.9-5.1L4.5 9.5l5.2-.8z"/></svg></div>
+      <h3>Favourites</h3><p>Keep the channels you actually watch one tap away, always at the top.</p>
+    </div>
+    <div class="feat">
+      <div class="ico"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="14" height="14" rx="2"/><path d="M7 8h14v12H9"/></svg></div>
+      <h3>Multiple playlists</h3><p>Save several subscriptions and switch between them instantly — no re-typing URLs.</p>
+    </div>
+    <div class="feat">
+      <div class="ico"><svg viewBox="0 0 24 24"><path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6z"/><path d="M9.5 12l1.8 1.8L15 10"/></svg></div>
+      <h3>Private by design</h3><p>No accounts, no tracking of your playlist. Your credentials never leave your phone.</p>
+    </div>
+    <div class="feat">
+      <div class="ico"><svg viewBox="0 0 24 24"><path d="M13 3L4 14h6l-1 7 9-11h-6z"/></svg></div>
+      <h3>Fast &amp; clean</h3><p>A smooth, focused player with none of the clutter — just your content, beautifully laid out.</p>
+    </div>
+  </div>
+</section>
+
+<section class="how" id="how">
+  <div class="wrap">
+    <div class="shead">
+      <div class="eyebrow">Up and running in a minute</div>
+      <h2>How it works</h2>
+      <p>OnDemand IPTV ships empty. You connect the subscription you already have, and it does the rest.</p>
+    </div>
+    <div class="steps">
+      <div class="step">
+        <div class="n">1</div>
+        <h3>Add your playlist</h3>
+        <p>Paste your M3U link, or sign in with your Xtream Codes details.</p>
+        <div class="code">http://your-provider.com/get.php?…</div>
+      </div>
+      <div class="step">
+        <div class="n">2</div>
+        <h3>It gets organized</h3>
+        <p>Channels, movies and series are sorted into a clean interface with logos and posters — automatically.</p>
+      </div>
+      <div class="step">
+        <div class="n">3</div>
+        <h3>Tap and watch</h3>
+        <p>Play instantly, favourite what you love, and pick up where you left off.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="shead">
+    <div class="eyebrow">See it in action</div>
+    <h2>Designed to feel effortless</h2>
+  </div>
+  <div class="wrap">
+    <div class="show">
+      <figure><img src="shot-live.png" alt="Live TV grid"><figcaption>Live TV, organized</figcaption></figure>
+      <figure><img src="shot-watch.png" alt="Watching a channel"><figcaption>Tap once, watch instantly</figcaption></figure>
+      <figure><img src="shot-organized.png" alt="Channels with real logos"><figcaption>Real logos, every category</figcaption></figure>
+    </div>
+  </div>
+</section>
+
+<section class="band" id="get">
+  <div class="wrap">
+    <div class="eyebrow">Get the app</div>
+    <h2>Bring your IPTV to life</h2>
+    <p>Free to download. Add your playlist and start watching in under a minute.</p>
+    <div class="badges">
+      <a class="store" href="https://apps.apple.com/app/id6792238106" aria-label="Download on the App Store">
+        <svg viewBox="0 0 24 24" fill="#fff"><path d="M16.37 12.7c-.02-2.3 1.88-3.4 1.96-3.46-1.07-1.56-2.73-1.78-3.32-1.8-1.41-.14-2.76.83-3.47.83-.72 0-1.82-.81-3-.79-1.54.02-2.97.9-3.76 2.28-1.6 2.78-.41 6.9 1.15 9.16.76 1.11 1.66 2.35 2.85 2.3 1.15-.05 1.58-.74 2.97-.74 1.38 0 1.77.74 2.98.72 1.23-.02 2.01-1.12 2.76-2.24.87-1.28 1.23-2.53 1.25-2.6-.03-.01-2.39-.92-2.4-3.65zM14.13 5.9c.63-.77 1.06-1.83.94-2.9-.91.04-2.02.61-2.67 1.37-.58.67-1.09 1.75-.95 2.78 1.02.08 2.05-.52 2.68-1.25z"/></svg>
+        <span><span class="s1">Download on the</span><br><span class="s2">App Store</span></span>
+      </a>
+      <span class="store soon">
+        <svg viewBox="0 0 24 24"><path fill="#ff7a45" d="M3.6 2.3 13 12 3.6 21.7c-.35-.2-.6-.6-.6-1.05V3.35c0-.45.25-.85.6-1.05z"/><path fill="#ffb37a" d="M16.5 8.6 13 12l3.5 3.4 3.9-2.24c.8-.46.8-1.86 0-2.32z"/><path fill="#e8471b" d="M3.6 2.3c.16-.09.36-.13.56-.11.2.02.4.09.56.2L16 8.6 13 12z"/><path fill="#c73c17" d="M13 12l3 3.4-11.28 6.4c-.16.11-.36.18-.56.2-.2.02-.4-.02-.56-.11z"/></svg>
+        <span><span class="s1">Coming soon on</span><br><span class="s2">Google Play <span class="soonpill">Soon</span></span></span>
+      </span>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="fgrid">
+      <div class="fbrand"><img src="logo.png" alt=""> OnDemand IPTV</div>
+      <div class="flinks">
+        <a href="privacy.html">Privacy Policy</a>
+        <a href="mailto:xandipbixta@gmail.com">Support</a>
+        <a href="https://apps.apple.com/app/id6792238106">App Store</a>
+      </div>
+    </div>
+    <p class="disc">OnDemand IPTV is a media player. It hosts, provides, bundles and streams no content of its own — all channels, movies and series come from the subscription you supply. The app is not affiliated with any content provider. You must have your own legal IPTV subscription or playlist to use it. Any logos shown belong to their respective owners and are supplied by your playlist.</p>
+    <p class="copy">© 2026 OnDemand IPTV. All rights reserved.</p>
+  </div>
+</footer>
+
 </body>
 </html>
